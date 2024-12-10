@@ -39,33 +39,95 @@ const initialTodosList = [
   },
 ]
 
+// Write your code here
+
 class SimpleTodos extends Component {
-  state = {
-    todosList: initialTodosList,
+  state = {todosList: initialTodosList, todoInput: ''}
+
+  deleteItem = uniqueId => {
+    const {todosList} = this.state
+    const filteredTodosList = todosList.filter(
+      eachTodo => eachTodo.id !== uniqueId,
+    )
+    this.setState({todosList: filteredTodosList})
   }
 
-  deleteTodo = id => {
+  editTodoItem = (uniqueId, todoItemInput) => {
     const {todosList} = this.state
-    const updatedTodosList = todosList.filter(eachTodo => eachTodo.id !== id)
+    const isTodoItemExist = todosList.find(eachTodo => eachTodo.id === uniqueId)
+    if (isTodoItemExist) {
+      this.setState(prevState => ({
+        todosList: prevState.todosList.map(eachTodo => {
+          if (eachTodo.id === uniqueId) {
+            return {...eachTodo, title: todoItemInput}
+          }
+          return eachTodo
+        }),
+      }))
+    }
+  }
 
-    this.setState({
-      todosList: updatedTodosList,
-    })
+  onChangeTodo = event => {
+    this.setState({todoInput: event.target.value})
+  }
+
+  onAddTodo = () => {
+    const {todosList, todoInput} = this.state
+    const inputArray = todoInput.split(' ')
+    const lastInputValue = inputArray[inputArray.length - 1]
+    const checkCount = Number.isInteger(Number(lastInputValue))
+
+    if (checkCount) {
+      const newTodos = []
+      inputArray.pop()
+      for (
+        let i = todosList.length + 1;
+        i <= todosList.length + Number(lastInputValue);
+        i += 1
+      ) {
+        const newId = i
+        const modifiedInputTodo = inputArray.join(' ')
+        const newTodo = {id: newId, title: modifiedInputTodo}
+        newTodos.push(newTodo)
+      }
+      console.log(newTodos)
+      this.setState(prevState => ({
+        todosList: [...prevState.todosList, ...newTodos],
+      }))
+    } else {
+      const newId = todosList.length + 1
+      const newTodo = {id: newId, title: todoInput}
+      this.setState(prevState => ({
+        todosList: [...prevState.todosList, newTodo],
+      }))
+    }
   }
 
   render() {
-    const {todosList} = this.state
+    const {todosList, todoInput} = this.state
 
     return (
-      <div className="app-container">
-        <div className="simple-todos-container">
-          <h1 className="heading">Simple Todos</h1>
-          <ul className="todos-list">
+      <div className="simpletodos-bg">
+        <div className="simpletodos-container">
+          <h1 className="todos-title">Simple Todos</h1>
+          <input
+            className="add-todo-input"
+            type="text"
+            placeholder="Add Todo"
+            onChange={this.onChangeTodo}
+            value={todoInput}
+          />
+          <button className="add-button" type="button" onClick={this.onAddTodo}>
+            Add
+          </button>
+          <ul className="unordered-list">
             {todosList.map(eachTodo => (
               <TodoItem
+                todoItem={eachTodo.title}
                 key={eachTodo.id}
-                todoDetails={eachTodo}
-                deleteTodo={this.deleteTodo}
+                uniqueId={eachTodo.id}
+                deleteItem={this.deleteItem}
+                editTodoItem={this.editTodoItem}
               />
             ))}
           </ul>
